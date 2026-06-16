@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سیستم پایش ایمنی انبار مواد شیمیایی | HSE</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #F5F4F0; color: #1A1916; font-size: 14px; min-height: 100vh; }
+.app { max-width: 900px; margin: 0 auto; min-height: 100vh; background: #fff; box-shadow: 0 0 40px rgba(0,0,0,0.08); }
+.topbar { background: #0C447C; color: #fff; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; }
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-left i { font-size: 22px; }
+.topbar-title { font-size: 15px; font-weight: 600; }
+.topbar-sub { font-size: 10px; opacity: 0.75; margin-top: 2px; }
+.topbar-date { font-size: 11px; opacity: 0.8; text-align: left; }
+.nav { display: flex; gap: 4px; background: #F0EFEB; border-bottom: 1px solid #DDDBD3; padding: 8px 14px; flex-wrap: wrap; }
+.nav-btn { background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 7px 14px; cursor: pointer; font-size: 13px; color: #5F5E5A; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; transition: all 0.15s; }
+.nav-btn.active { background: #fff; border-color: #DDDBD3; color: #1A1916; font-weight: 500; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.nav-btn:hover:not(.active) { background: rgba(255,255,255,0.6); }
+.page { display: none; padding: 18px; }
+.page.active { display: block; }
+.section-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; color: #1A1916; display: flex; align-items: center; gap: 8px; }
+.card { background: #fff; border: 1px solid #E8E6DF; border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.metric { background: #F5F4F0; border-radius: 10px; padding: 14px; text-align: center; border: 1px solid #E8E6DF; }
+.metric-label { font-size: 11px; color: #7A7875; margin-bottom: 5px; }
+.metric-val { font-size: 24px; font-weight: 600; }
+.metric-val.green { color: #3B6D11; }
+.metric-val.amber { color: #854F0B; }
+.metric-val.red { color: #A32D2D; }
+.metric-val.blue { color: #185FA5; }
+.metric-val.gray { color: #5F5E5A; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-green { background: #EAF3DE; color: #3B6D11; }
+.badge-amber { background: #FAEEDA; color: #854F0B; }
+.badge-red { background: #FCEBEB; color: #A32D2D; }
+.badge-blue { background: #E6F1FB; color: #185FA5; }
+.badge-gray { background: #F1EFE8; color: #5F5E5A; }
+.q-block { border: 1px solid #E8E6DF; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; transition: border-color 0.2s; }
+.q-block.critical-q { border-right: 4px solid #E24B4A; }
+.q-block:hover { border-color: #C5C3BB; }
+.q-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.q-text { font-size: 13px; font-weight: 500; flex: 1; line-height: 1.6; }
+.q-ref { font-size: 10px; color: #9A9895; margin-bottom: 10px; }
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+@media (max-width: 520px) { .options { grid-template-columns: 1fr; } .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+.opt { display: flex; align-items: center; gap: 8px; background: #F5F4F0; border: 1px solid #E8E6DF; border-radius: 8px; padding: 9px 11px; cursor: pointer; font-size: 12px; transition: all 0.15s; line-height: 1.4; }
+.opt:hover { background: #EEEDEA; border-color: #C5C3BB; }
+.opt.sel-a { background: #EAF3DE; border-color: #639922; color: #27500A; }
+.opt.sel-b { background: #FAEEDA; border-color: #BA7517; color: #633806; }
+.opt.sel-c { background: #FCEBEB; border-color: #E24B4A; color: #A32D2D; }
+.opt.sel-d { background: #F1EFE8; border-color: #888780; color: #444441; }
+.opt input[type=radio] { width: 15px; height: 15px; accent-color: #185FA5; flex-shrink: 0; }
+.progress-bar { height: 8px; background: #F0EFEB; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+.progress-green { background: #639922; }
+.progress-amber { background: #BA7517; }
+.progress-red { background: #E24B4A; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+@media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label { font-size: 12px; color: #5F5E5A; font-weight: 500; }
+.form-group input, .form-group select, .form-group textarea { font-size: 13px; padding: 8px 11px; border-radius: 8px; border: 1px solid #DDDBD3; background: #F5F4F0; color: #1A1916; direction: rtl; font-family: inherit; transition: border-color 0.15s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #185FA5; background: #fff; }
+.form-group textarea { resize: vertical; min-height: 75px; }
+.btn { padding: 9px 18px; border-radius: 8px; border: 1px solid #DDDBD3; background: #F5F4F0; cursor: pointer; font-size: 13px; color: #1A1916; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; transition: all 0.15s; }
+.btn:hover { background: #EEEDEA; }
+.btn-primary { background: #185FA5; color: #fff; border-color: #185FA5; }
+.btn-primary:hover { background: #0C447C; }
+.btn-success { background: #3B6D11; color: #fff; border-color: #3B6D11; }
+.btn-success:hover { background: #27500A; }
+.score-ring { width: 100px; height: 100px; position: relative; margin: 0 auto 8px; }
+.score-ring svg { transform: rotate(-90deg); }
+.score-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 20px; font-weight: 700; }
+.risk-chart-row { margin-bottom: 9px; }
+.risk-chart-lbl { font-size: 12px; color: #5F5E5A; margin-bottom: 4px; display: flex; justify-content: space-between; }
+.risk-bar-track { height: 7px; background: #F0EFEB; border-radius: 4px; overflow: hidden; }
+.risk-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+.action-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid #E8E6DF; }
+.action-row:last-child { border-bottom: none; }
+.action-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 17px; }
+.action-content { flex: 1; }
+.action-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.action-desc { font-size: 12px; color: #5F5E5A; line-height: 1.5; margin-bottom: 6px; }
+.tabs { display: flex; gap: 0; border-bottom: 1px solid #E8E6DF; margin-bottom: 16px; }
+.tab { padding: 9px 16px; cursor: pointer; font-size: 13px; color: #7A7875; border-bottom: 2px solid transparent; transition: all 0.15s; }
+.tab.active { color: #185FA5; border-bottom-color: #185FA5; font-weight: 600; }
+.report-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid #E8E6DF; cursor: pointer; transition: background 0.1s; }
+.report-row:last-child { border-bottom: none; }
+.report-row:hover { background: #F8F7F4; margin: 0 -4px; padding: 11px 4px; border-radius: 6px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 10px 0; user-select: none; }
+.section-body { display: none; padding-top: 4px; }
+.section-body.open { display: block; }
+.score-summary-box { display: flex; align-items: center; gap: 18px; padding: 14px 16px; background: #F5F4F0; border-radius: 10px; margin-bottom: 14px; border: 1px solid #E8E6DF; }
+.notif { border-radius: 10px; padding: 11px 14px; margin-bottom: 12px; font-size: 12px; display: flex; gap: 10px; align-items: flex-start; }
+.notif-red { background: #FCEBEB; border: 1px solid #F09595; color: #A32D2D; }
+.notif-warn { background: #FAEEDA; border: 1px solid #FAC775; color: #854F0B; }
+.notif-green { background: #EAF3DE; border: 1px solid #8DC456; color: #3B6D11; }
+.correctiveList { list-style: none; }
+.correctiveList li { display: flex; gap: 9px; align-items: flex-start; padding: 7px 0; border-bottom: 1px solid #E8E6DF; font-size: 12px; line-height: 1.5; }
+.correctiveList li:last-child { border-bottom: none; }
+.correctiveList li::before { content: "◈"; color: #185FA5; flex-shrink: 0; margin-top: 1px; }
+.risk-level-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.risk-level-card { border-radius: 10px; padding: 12px; text-align: center; }
+.empty-state { text-align: center; padding: 32px 16px; color: #9A9895; font-size: 13px; }
+.empty-state i { font-size: 36px; display: block; margin-bottom: 8px; opacity: 0.4; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <i class="ti ti-shield-check"></i>
+      <div>
+        <div class="topbar-title">سیستم پایش ایمنی انبار مواد شیمیایی</div>
+        <div class="topbar-sub">ISO 45001 &nbsp;·&nbsp; OSHA &nbsp;·&nbsp; NFPA</div>
+      </div>
+    </div>
+    <div class="topbar-date" id="currentDate"></div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="nav-btn active" onclick="showPage('dashboard')" id="nav-dashboard"><i class="ti ti-layout-dashboard"></i> داشبورد</button>
+    <button class="nav-btn" onclick="showPage('newInspection')" id="nav-newInspection"><i class="ti ti-clipboard-check"></i> بازرسی جدید</button>
+    <button class="nav-btn" onclick="showPage('reports')" id="nav-reports"><i class="ti ti-chart-bar"></i> گزارشات</button>
+    <button class="nav-btn" onclick="showPage('corrective')" id="nav-corrective"><i class="ti ti-tool"></i> اقدام اصلاحی</button>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="page active" id="page-dashboard">
+    <div id="criticalAlert" class="notif notif-red" style="display:none;">
+      <i class="ti ti-alert-triangle" style="font-size:18px;flex-shrink:0;"></i>
+      <div><strong>هشدار بحرانی!</strong> وضعیت بحرانی شناسایی شده — اقدام فوری ضروری است.</div>
+    </div>
+    <div class="grid-4">
+      <div class="metric"><div class="metric-label"><i class="ti ti-clipboard-list"></i> بازرسی ثبت‌شده</div><div class="metric-val blue" id="dash-total">0</div></div>
+      <div class="metric"><div class="metric-label"><i class="ti ti-chart-pie"></i> میانگین امتیاز</div><div class="metric-val gray" id="dash-avg">—</div></div>
+      <div class="metric"><div class="metric-label"><i class="ti ti-alert-circle"></i> موارد بحرانی</div><div class="metric-val red" id="dash-critical">0</div></div>
+      <div class="metric"><div class="metric-label"><i class="ti ti-tool"></i> اقدامات باز</div><div class="metric-val amber" id="dash-openActions">0</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title"><i class="ti ti-chart-donut"></i> توزیع سطح ریسک</div>
+        <div class="risk-chart-row">
+          <div class="risk-chart-lbl"><span>🟢 قابل قبول (80–100)</span><span id="rpct-low">0%</span></div>
+          <div class="risk-bar-track"><div class="risk-bar-fill" style="background:#639922;" id="rbar-low"></div></div>
+        </div>
+        <div class="risk-chart-row">
+          <div class="risk-chart-lbl"><span>🟡 متوسط (60–79)</span><span id="rpct-med">0%</span></div>
+          <div class="risk-bar-track"><div class="risk-bar-fill" style="background:#BA7517;" id="rbar-med"></div></div>
+        </div>
+        <div class="risk-chart-row">
+          <div class="risk-chart-lbl"><span>🔶 زیاد (40–59)</span><span id="rpct-high2">0%</span></div>
+          <div class="risk-bar-track"><div class="risk-bar-fill" style="background:#C96A20;" id="rbar-high2"></div></div>
+        </div>
+        <div class="risk-chart-row">
+          <div class="risk-chart-lbl"><span>🔴 بحرانی (زیر 40)</span><span id="rpct-high">0%</span></div>
+          <div class="risk-bar-track"><div class="risk-bar-fill" style="background:#E24B4A;" id="rbar-high"></div></div>
+        </div>
+        <div style="margin-top:12px;font-size:10px;color:#9A9895;">بر اساس ISO 45001 و OSHA</div>
+      </div>
+      <div class="card">
+        <div class="section-title"><i class="ti ti-history"></i> آخرین بازرسی‌ها</div>
+        <div id="recent-list"><div class="empty-state"><i class="ti ti-clipboard"></i>هنوز بازرسی ثبت نشده.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title"><i class="ti ti-info-circle"></i> راهنمای سطح‌بندی ریسک</div>
+      <div class="risk-level-grid">
+        <div class="risk-level-card" style="background:#EAF3DE;"><div style="font-size:20px;font-weight:700;color:#3B6D11;">80–100</div><div style="font-size:12px;color:#27500A;margin:4px 0;">✅ قابل قبول</div><div style="font-size:11px;color:#3B6D11;">پایش دوره‌ای ادامه یابد</div></div>
+        <div class="risk-level-card" style="background:#FAEEDA;"><div style="font-size:20px;font-weight:700;color:#854F0B;">60–79</div><div style="font-size:12px;color:#633806;margin:4px 0;">⚠️ متوسط</div><div style="font-size:11px;color:#854F0B;">اقدام اصلاحی ظرف ۳۰ روز</div></div>
+        <div class="risk-level-card" style="background:#FAECE7;"><div style="font-size:20px;font-weight:700;color:#993C1D;">40–59</div><div style="font-size:12px;color:#712B13;margin:4px 0;">🔶 زیاد</div><div style="font-size:11px;color:#993C1D;">اقدام اصلاحی ظرف ۷ روز</div></div>
+        <div class="risk-level-card" style="background:#FCEBEB;"><div style="font-size:20px;font-weight:700;color:#A32D2D;">زیر ۴۰</div><div style="font-size:12px;color:#791F1F;margin:4px 0;">🚨 بحرانی</div><div style="font-size:11px;color:#A32D2D;">توقف فعالیت + اقدام فوری</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== NEW INSPECTION ===== -->
+  <div class="page" id="page-newInspection">
+    <div class="card">
+      <div class="section-title"><i class="ti ti-file-plus"></i> فرم ثبت بازرسی</div>
+      <div class="form-row">
+        <div class="form-group"><label>نام بازرس *</label><input type="text" id="inspector" placeholder="نام و نام خانوادگی"></div>
+        <div class="form-group"><label>تاریخ بازرسی *</label><input type="date" id="insDate"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>نام انبار / سایت *</label><input type="text" id="warehouse" placeholder="مثال: انبار مواد شیمیایی شماره ۱"></div>
+        <div class="form-group"><label>شیفت بازرسی</label><select id="shift"><option>صبح</option><option>عصر</option><option>شب</option></select></div>
+      </div>
+      <div class="form-group"><label>توضیحات تکمیلی</label><textarea id="inspNotes" placeholder="شرایط خاص، حوادث اخیر، نکات مهم..."></textarea></div>
+    </div>
+
+    <div id="checklist-container"></div>
+
+    <div class="score-summary-box" id="liveSummary">
+      <div style="text-align:center;flex-shrink:0;">
+        <div class="score-ring">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#E8E6DF" stroke-width="8"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#185FA5" stroke-width="8" stroke-dasharray="263.9" stroke-dashoffset="263.9" id="scoreCircle" stroke-linecap="round"/>
+          </svg>
+          <div class="score-num" id="liveScore">0%</div>
+        </div>
+        <div style="font-size:11px;color:#7A7875;">امتیاز کل</div>
+      </div>
+      <div style="flex:1;">
+        <div style="margin-bottom:8px;font-size:13px;font-weight:600;">وضعیت: <span id="liveStatus" class="badge badge-gray">ناقص</span></div>
+        <div class="progress-bar" style="margin-bottom:10px;"><div id="liveProgress" class="progress-fill progress-green" style="width:0%;"></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;color:#5F5E5A;">
+          <div>✅ پاسخ‌داده‌شده: <strong id="answeredCount">0</strong></div>
+          <div>📋 کل سوالات: <strong id="totalCount">0</strong></div>
+          <div style="color:#A32D2D;">🚨 بحرانی بی‌پاسخ: <strong id="critUnanswered">0</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;flex-wrap:wrap;">
+      <button class="btn" onclick="resetForm()"><i class="ti ti-refresh"></i> ریست فرم</button>
+      <button class="btn btn-primary" onclick="submitInspection()"><i class="ti ti-device-floppy"></i> ثبت بازرسی</button>
+    </div>
+  </div>
+
+  <!-- ===== REPORTS ===== -->
+  <div class="page" id="page-reports">
+    <div class="tabs">
+      <div class="tab active" id="tab-btn-list" onclick="switchTab('tab-list','tab-btn-list')"><i class="ti ti-list"></i> لیست بازرسی‌ها</div>
+      <div class="tab" id="tab-btn-detail" onclick="switchTab('tab-detail','tab-btn-detail')"><i class="ti ti-file-description"></i> جزئیات</div>
+    </div>
+    <div id="tab-list"><div id="reportList"><div class="empty-state"><i class="ti ti-clipboard-x"></i>هنوز بازرسی‌ای ثبت نشده است.</div></div></div>
+    <div id="tab-detail" style="display:none;"><div id="detailContent"><div class="empty-state"><i class="ti ti-eye"></i>یک بازرسی را از لیست انتخاب کنید.</div></div></div>
+  </div>
+
+  <!-- ===== CORRECTIVE ===== -->
+  <div class="page" id="page-corrective">
+    <div class="card">
+      <div class="section-title"><i class="ti ti-plus"></i> ثبت اقدام اصلاحی جدید</div>
+      <div class="form-row">
+        <div class="form-group"><label>عنوان اقدام *</label><input type="text" id="ca-title" placeholder="توصیف کوتاه اقدام اصلاحی"></div>
+        <div class="form-group"><label>اولویت</label><select id="ca-priority"><option>فوری (۲۴ ساعت)</option><option>زیاد (۷ روز)</option><option>متوسط (۳۰ روز)</option><option>کم (۹۰ روز)</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>مسئول اجرا</label><input type="text" id="ca-owner" placeholder="نام مسئول اجرا"></div>
+        <div class="form-group"><label>مهلت اجرا</label><input type="date" id="ca-deadline"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;"><label>شرح کامل اقدام</label><textarea id="ca-desc" placeholder="شرح کامل اقدام اصلاحی مورد نیاز..."></textarea></div>
+      <button class="btn btn-primary" onclick="addCorrectiveAction()"><i class="ti ti-plus"></i> افزودن اقدام</button>
+    </div>
+    <div class="card">
+      <div class="section-title"><i class="ti ti-list-check"></i> لیست اقدامات اصلاحی</div>
+      <div id="correctiveList"><div class="empty-state"><i class="ti ti-tool"></i>هنوز اقدام اصلاحی ثبت نشده.</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const checklistData = [
+  { id:"sec1", title:"ذخیره‌سازی و نگهداری مواد شیمیایی", icon:"ti-database", questions:[
+    { id:"q1", text:"آیا مواد شیمیایی بر اساس سازگاری (compatibility) از یکدیگر جداسازی شده‌اند؟", critical:true, ref:"OSHA 1910.106 / NFPA 400",
+      opts:[{l:"الف) بله، کاملاً جداسازی با برچسب‌گذاری مناسب",s:4,c:"sel-a"},{l:"ب) جزئاً جداسازی، بدون برچسب کافی",s:2,c:"sel-b"},{l:"ج) جداسازی ناقص، ریسک واکنش وجود دارد",s:1,c:"sel-c"},{l:"د) هیچ جداسازی انجام نشده است",s:0,c:"sel-d"}]},
+    { id:"q2", text:"آیا برگه‌های اطلاعات ایمنی مواد (SDS/MSDS) برای تمام مواد موجود و در دسترس است؟", critical:true, ref:"ISO 45001 / GHS",
+      opts:[{l:"الف) کاملاً موجود و به‌روز (کمتر از ۵ سال)",s:4,c:"sel-a"},{l:"ب) موجود اما برخی قدیمی‌تر از ۵ سال هستند",s:2,c:"sel-b"},{l:"ج) ناقص (بیش از ۳۰٪ کمبود دارد)",s:1,c:"sel-c"},{l:"د) SDS اصلاً موجود نیست",s:0,c:"sel-d"}]},
+    { id:"q3", text:"آیا ظروف نگهداری مواد شیمیایی دارای برچسب‌گذاری GHS استاندارد هستند؟", critical:false, ref:"GHS / OSHA HazCom",
+      opts:[{l:"الف) کلیه ظروف برچسب GHS کامل دارند",s:4,c:"sel-a"},{l:"ب) بیشتر ظروف برچسب‌گذاری شده‌اند",s:3,c:"sel-b"},{l:"ج) برخی ظروف بدون برچسب هستند",s:1,c:"sel-c"},{l:"د) برچسب‌گذاری صورت نگرفته",s:0,c:"sel-d"}]},
+    { id:"q4", text:"آیا محدودیت حداکثر موجودی (MAQ) رعایت می‌شود؟", critical:true, ref:"NFPA 400 / OSHA PSM",
+      opts:[{l:"الف) کمتر از حد مجاز با پایش مستمر",s:4,c:"sel-a"},{l:"ب) در محدوده مجاز بدون پایش مستمر",s:3,c:"sel-b"},{l:"ج) نزدیک به حد مجاز و بدون پایش",s:1,c:"sel-c"},{l:"د) از حد مجاز تجاوز کرده",s:0,c:"sel-d"}]}
+  ]},
+  { id:"sec2", title:"سیستم‌های اعلام و اطفای حریق", icon:"ti-flame", questions:[
+    { id:"q5", text:"آیا سیستم اعلام حریق (Fire Alarm) عملکرد صحیح دارد و به‌طور دوره‌ای آزمایش می‌شود؟", critical:true, ref:"NFPA 72 / ISO 45001",
+      opts:[{l:"الف) سیستم فعال، آزمایش ماهیانه مستند",s:4,c:"sel-a"},{l:"ب) سیستم فعال، آزمایش غیرمنظم",s:3,c:"sel-b"},{l:"ج) بخشی از سیستم معیوب است",s:1,c:"sel-c"},{l:"د) سیستم از کار افتاده یا نصب نشده",s:0,c:"sel-d"}]},
+    { id:"q6", text:"آیا کپسول‌های آتش‌نشانی متناسب با نوع مواد شیمیایی موجود هستند و سرویس شده‌اند؟", critical:true, ref:"NFPA 10 / OSHA 1910.157",
+      opts:[{l:"الف) مناسب نوع آتش، سرویس سالانه با برچسب",s:4,c:"sel-a"},{l:"ب) مناسب اما سرویس عقب‌افتاده است",s:2,c:"sel-b"},{l:"ج) نوع کپسول مناسب نیست",s:1,c:"sel-c"},{l:"د) کپسول موجود نیست یا منقضی است",s:0,c:"sel-d"}]},
+    { id:"q7", text:"آیا سیستم اسپرینکلر یا اطفای حریق خودکار نصب و فعال است؟", critical:false, ref:"NFPA 13 / NFPA 400",
+      opts:[{l:"الف) نصب، فعال و آزمایش دوره‌ای مستند",s:4,c:"sel-a"},{l:"ب) نصب اما آزمایش منظم ندارد",s:2,c:"sel-b"},{l:"ج) نصب ناقص یا دارای نقص فنی",s:1,c:"sel-c"},{l:"د) سیستم نصب نشده است",s:0,c:"sel-d"}]}
+  ]},
+  { id:"sec3", title:"تهویه و کنترل بخارات", icon:"ti-wind", questions:[
+    { id:"q8", text:"آیا سیستم تهویه مصنوعی (LEV) در انبار نصب و عملکرد مناسب دارد؟", critical:true, ref:"OSHA 1910.94 / ISO 45001",
+      opts:[{l:"الف) سیستم کامل با پایش جریان هوا",s:4,c:"sel-a"},{l:"ب) سیستم موجود اما پایش ندارد",s:2,c:"sel-b"},{l:"ج) ظرفیت تهویه ناکافی است",s:1,c:"sel-c"},{l:"د) سیستم تهویه وجود ندارد",s:0,c:"sel-d"}]},
+    { id:"q9", text:"آیا آشکارسازهای گاز و بخار برای مواد سمی/قابل اشتعال نصب و کالیبره هستند؟", critical:true, ref:"OSHA 1910.119 / NFPA 72",
+      opts:[{l:"الف) نصب، کالیبراسیون مستند و به‌روز",s:4,c:"sel-a"},{l:"ب) نصب اما کالیبراسیون ندارد",s:2,c:"sel-b"},{l:"ج) پوشش ناقص انبار",s:1,c:"sel-c"},{l:"د) آشکارساز نصب نشده است",s:0,c:"sel-d"}]}
+  ]},
+  { id:"sec4", title:"تجهیزات حفاظت فردی (PPE)", icon:"ti-helmet", questions:[
+    { id:"q10", text:"آیا PPE متناسب با خطرات مواد شیمیایی موجود در انبار فراهم است؟", critical:true, ref:"ISO 45001 / OSHA 1910.132",
+      opts:[{l:"الف) PPE کامل و مناسب برای همه کارکنان",s:4,c:"sel-a"},{l:"ب) PPE موجود اما برای همه کافی نیست",s:2,c:"sel-b"},{l:"ج) PPE نامناسب با نوع خطر",s:1,c:"sel-c"},{l:"د) PPE موجود نیست",s:0,c:"sel-d"}]},
+    { id:"q11", text:"آیا آموزش صحیح استفاده از PPE به کارکنان داده و مستندسازی شده؟", critical:false, ref:"ISO 45001 / OSHA 1910.132",
+      opts:[{l:"الف) آموزش کامل با مستندات سالانه",s:4,c:"sel-a"},{l:"ب) آموزش داده شده، بدون مستندات",s:3,c:"sel-b"},{l:"ج) آموزش جزئی برای برخی کارکنان",s:1,c:"sel-c"},{l:"د) هیچ آموزشی داده نشده",s:0,c:"sel-d"}]}
+  ]},
+  { id:"sec5", title:"راه‌های خروج اضطراری و تجهیزات نجات", icon:"ti-door-exit", questions:[
+    { id:"q12", text:"آیا راه‌های خروج اضطراری عاری از موانع بوده و تابلوهای ایمنی نصب شده‌اند؟", critical:true, ref:"OSHA 1910.37 / NFPA 101",
+      opts:[{l:"الف) کاملاً باز، تابلوهای روشن و کامل",s:4,c:"sel-a"},{l:"ب) خروجی باز اما تابلو ناقص",s:2,c:"sel-b"},{l:"ج) مانع جزئی در مسیر خروج",s:1,c:"sel-c"},{l:"د) خروجی مسدود یا بدون تابلو",s:0,c:"sel-d"}]},
+    { id:"q13", text:"آیا چشم‌شویه و دوش اضطراری در فاصله ۱۰ ثانیه دسترسی موجود است؟", critical:true, ref:"ANSI Z358.1 / OSHA",
+      opts:[{l:"الف) نصب، آزمایش هفتگی مستند",s:4,c:"sel-a"},{l:"ب) نصب اما آزمایش نمی‌شود",s:2,c:"sel-b"},{l:"ج) فاصله بیش از ۱۰ ثانیه است",s:1,c:"sel-c"},{l:"د) تجهیز نصب نشده یا معیوب است",s:0,c:"sel-d"}]},
+    { id:"q14", text:"آیا برنامه مقابله با نشت و ریخت‌وپاش (Spill Response Plan) مدون و مستند است؟", critical:false, ref:"OSHA 1910.120 / ISO 14001",
+      opts:[{l:"الف) برنامه مدون، کارکنان آموزش دیده",s:4,c:"sel-a"},{l:"ب) برنامه موجود، آموزش ناقص",s:2,c:"sel-b"},{l:"ج) برنامه وجود دارد اما اجرا نمی‌شود",s:1,c:"sel-c"},{l:"د) هیچ برنامه‌ای وجود ندارد",s:0,c:"sel-d"}]}
+  ]},
+  { id:"sec6", title:"برق‌گیری و ایمنی برقی", icon:"ti-bolt", questions:[
+    { id:"q15", text:"آیا تجهیزات برقی در مناطق خطر از نوع ضدانفجار (Ex-rated) هستند؟", critical:true, ref:"NFPA 70E / OSHA 1910.303",
+      opts:[{l:"الف) کلیه تجهیزات Ex-rated با گواهینامه",s:4,c:"sel-a"},{l:"ب) بیشتر تجهیزات Ex-rated هستند",s:2,c:"sel-b"},{l:"ج) برخی تجهیزات عادی در منطقه خطر",s:1,c:"sel-c"},{l:"د) هیچ تجهیز Ex-rated وجود ندارد",s:0,c:"sel-d"}]}
+  ]}
+];
+
+const correctiveMap = {
+  "OSHA 1910.106 / NFPA 400":["نصب دیواره جداکننده بین مواد ناسازگار","برچسب‌گذاری کامل با سیستم GHS","تهیه نقشه چیدمان سازگاری مواد","آموزش پرسنل در مورد جداسازی مواد"],
+  "ISO 45001 / GHS":["دریافت و بروزرسانی SDS از تامین‌کنندگان","نصب پوشه SDS در نقاط دسترسی","آموزش کارکنان برای خواندن SDS","تهیه سیستم مدیریت SDS دیجیتال"],
+  "NFPA 72 / ISO 45001":["تماس با شرکت سرویس حریق برای تعمیر","تنظیم برنامه آزمایش ماهیانه","مستندسازی نتایج آزمایش‌های اعلام حریق","نصب سنسور دود اضافی در نقاط کور"],
+  "NFPA 10 / OSHA 1910.157":["سرویس فوری کلیه کپسول‌های آتش‌نشانی","جایگزینی کپسول‌های منقضی","تعیین نوع صحیح کپسول برای هر منطقه","آموزش استفاده از کپسول به کارکنان"],
+  "NFPA 13 / NFPA 400":["بازدید فنی سیستم اسپرینکلر","رفع نقص‌های فنی شناسایی‌شده","برنامه‌ریزی آزمایش سالانه","مستندسازی گزارش بازرسی سیستم"],
+  "OSHA 1910.94 / ISO 45001":["سرویس و تنظیم سیستم تهویه","نصب فن‌های کمکی در نقاط کم‌تهویه","اندازه‌گیری جریان هوا با آنمومتر","مستندسازی سرویس‌های تهویه"],
+  "OSHA 1910.119 / NFPA 72":["کالیبراسیون آشکارسازهای گاز","نصب آشکارساز در نقاط کور","تنظیم آلارم‌های هشدار گاز","ثبت کالیبراسیون در سیستم نگهداری"],
+  "ISO 45001 / OSHA 1910.132":["خرید PPE مناسب برای کلیه کارکنان","برگزاری دوره آموزشی PPE","تهیه دستورالعمل مکتوب استفاده از PPE","ثبت رکوردهای توزیع PPE"],
+  "OSHA 1910.37 / NFPA 101":["برداشتن موانع از مسیر خروج","نصب تابلوهای EXIT روشنایی‌دار","آزمایش ماهیانه تابلوهای اضطراری","مستندسازی بازرسی‌های مسیر خروج"],
+  "ANSI Z358.1 / OSHA":["نصب چشم‌شویه در فاصله ۱۰ ثانیه","آزمایش هفتگی چشم‌شویه","تمیزکاری و نگهداری دوره‌ای","آموزش کارکنان برای استفاده اضطراری"],
+  "OSHA 1910.120 / ISO 14001":["تدوین Spill Response Plan","خرید کیت جمع‌آوری نشت","آموزش تیم واکنش اضطراری","برگزاری مانور نشت شیمیایی"],
+  "NFPA 70E / OSHA 1910.303":["جایگزینی تجهیزات با نمونه Ex-rated","کسب گواهینامه ATEX برای تجهیزات","بررسی طبقه‌بندی منطقه خطر","ثبت تجهیزات در سیستم نگهداری"],
+  "default":["بررسی و اصلاح فوری نقص شناسایی‌شده","مستندسازی اقدام اصلاحی انجام‌شده","آموزش تکمیلی کارکنان مرتبط","بازرسی پیگیری در ۳۰ روز آینده"]
+};
+
+let answers = {}, inspections = [], correctiveActions = [];
+
+function buildChecklist() {
+  const container = document.getElementById('checklist-container');
+  container.innerHTML = '';
+  let total = 0;
+  checklistData.forEach(sec => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.marginBottom = '12px';
+    let qHtml = '';
+    sec.questions.forEach(q => {
+      total++;
+      qHtml += `<div class="q-block${q.critical?' critical-q':''}" id="qblock-${q.id}">
+        <div class="q-header">
+          <div class="q-text">${q.text}</div>
+          <span class="badge ${q.critical?'badge-red':'badge-gray'}">${q.critical?'🚨 بحرانی':'معمولی'}</span>
+        </div>
+        <div class="q-ref">📌 مرجع: ${q.ref}</div>
+        <div class="options">
+          ${q.opts.map((o,i)=>`<label class="opt" id="opt-${q.id}-${i}" onclick="selectOpt('${q.id}',${i},${o.s},'${o.c}')">
+            <input type="radio" name="${q.id}" value="${i}"> ${o.l}
+          </label>`).join('')}
+        </div>
+      </div>`;
+    });
+    div.innerHTML = `<div class="section-header" onclick="toggleSec('${sec.id}')">
+      <div class="section-title" style="margin-bottom:0;"><i class="ti ${sec.icon}"></i> ${sec.title}</div>
+      <i class="ti ti-chevron-down" id="chev-${sec.id}" style="transition:transform 0.2s;"></i>
+    </div>
+    <div class="section-body open" id="sb-${sec.id}">${qHtml}</div>`;
+    container.appendChild(div);
+  });
+  document.getElementById('totalCount').textContent = total;
+  updateLiveScore();
+}
+
+function toggleSec(id) {
+  const b = document.getElementById('sb-'+id), c = document.getElementById('chev-'+id);
+  b.classList.toggle('open');
+  c.style.transform = b.classList.contains('open') ? '' : 'rotate(-90deg)';
+}
+
+function selectOpt(qId, idx, score, cls) {
+  answers[qId] = {idx, score, cls};
+  getAllQ().filter(q=>q.id===qId).forEach(q=>{
+    q.opts.forEach((_,i)=>{ const el=document.getElementById(`opt-${qId}-${i}`); el.className='opt'; el.querySelector('input').checked=false; });
+  });
+  const sel = document.getElementById(`opt-${qId}-${idx}`);
+  sel.className = 'opt '+cls;
+  sel.querySelector('input').checked = true;
+  updateLiveScore();
+}
+
+function getAllQ() { return checklistData.flatMap(s=>s.questions); }
+
+function updateLiveScore() {
+  const all = getAllQ();
+  const maxS = all.reduce((s,q)=>s+Math.max(...q.opts.map(o=>o.s)),0);
+  const earned = all.reduce((s,q)=>s+(answers[q.id]?answers[q.id].score:0),0);
+  const pct = maxS>0?Math.round((earned/maxS)*100):0;
+  const answered = Object.keys(answers).length;
+  const critUnans = all.filter(q=>q.critical&&!answers[q.id]).length;
+
+  document.getElementById('liveScore').textContent = pct+'%';
+  document.getElementById('answeredCount').textContent = answered;
+  document.getElementById('critUnanswered').textContent = critUnans;
+
+  const circ = document.getElementById('scoreCircle');
+  const c = 263.9;
+  circ.style.strokeDashoffset = c-(pct/100)*c;
+  circ.style.stroke = pct>=80?'#639922':pct>=60?'#BA7517':'#E24B4A';
+
+  const statusEl = document.getElementById('liveStatus');
+  const prog = document.getElementById('liveProgress');
+  if (answered < all.length) { statusEl.textContent='ناقص'; statusEl.className='badge badge-gray'; }
+  else if (pct>=80) { statusEl.textContent='✅ قابل قبول'; statusEl.className='badge badge-green'; }
+  else if (pct>=60) { statusEl.textContent='⚠️ متوسط'; statusEl.className='badge badge-amber'; }
+  else if (pct>=40) { statusEl.textContent='🔶 زیاد'; statusEl.className='badge badge-amber'; }
+  else { statusEl.textContent='🚨 بحرانی'; statusEl.className='badge badge-red'; }
+  prog.style.width = pct+'%';
+  prog.className = 'progress-fill '+(pct>=80?'progress-green':pct>=60?'progress-amber':'progress-red');
+}
+
+function submitInspection() {
+  const all = getAllQ();
+  const unans = all.filter(q=>!answers[q.id]);
+  if (!document.getElementById('inspector').value.trim()) { alert('لطفاً نام بازرس را وارد کنید.'); return; }
+  if (!document.getElementById('warehouse').value.trim()) { alert('لطفاً نام انبار را وارد کنید.'); return; }
+  if (unans.length>0) { alert(`لطفاً به ${unans.length} سوال بدون پاسخ پاسخ دهید.`); return; }
+
+  const maxS = all.reduce((s,q)=>s+Math.max(...q.opts.map(o=>o.s)),0);
+  const earned = all.reduce((s,q)=>s+(answers[q.id]?answers[q.id].score:0),0);
+  const pct = Math.round((earned/maxS)*100);
+  let riskLevel, riskClass;
+  if (pct>=80){riskLevel='قابل قبول';riskClass='badge-green';}
+  else if (pct>=60){riskLevel='متوسط';riskClass='badge-amber';}
+  else if (pct>=40){riskLevel='زیاد';riskClass='badge-amber';}
+  else{riskLevel='بحرانی';riskClass='badge-red';}
+
+  const critFailed = all.filter(q=>q.critical&&answers[q.id]&&answers[q.id].score===0);
+  const isCritical = pct<60||critFailed.length>0;
+
+  const insp = {
+    id:Date.now(),
+    inspector:document.getElementById('inspector').value,
+    warehouse:document.getElementById('warehouse').value,
+    insDate:document.getElementById('insDate').value||new Date().toISOString().split('T')[0],
+    shift:document.getElementById('shift').value,
+    notes:document.getElementById('inspNotes').value,
+    pct, riskLevel, riskClass, isCritical,
+    answers:{...answers}, critFailed:critFailed.map(q=>q.id)
+  };
+  inspections.push(insp);
+  updateDashboard();
+  renderReportList();
+
+  const msg = `✅ بازرسی با موفقیت ثبت شد!\n\n📊 امتیاز: ${pct}%\n🏷️ سطح ریسک: ${riskLevel}\n${isCritical?'\n⚠️ وضعیت بحرانی شناسایی شد!\nاقدام اصلاحی فوری ضروری است.':''}`;
+  alert(msg);
+  resetForm();
+  showPage('reports');
+}
+
+function updateDashboard() {
+  document.getElementById('dash-total').textContent = inspections.length;
+  if (!inspections.length) {
+    document.getElementById('dash-avg').textContent='—';
+    document.getElementById('dash-avg').className='metric-val gray';
+  } else {
+    const avg = Math.round(inspections.reduce((s,i)=>s+i.pct,0)/inspections.length);
+    const el = document.getElementById('dash-avg');
+    el.textContent=avg+'%';
+    el.className='metric-val '+(avg>=80?'green':avg>=60?'amber':'red');
+  }
+  const crit=inspections.filter(i=>i.isCritical).length;
+  document.getElementById('dash-critical').textContent=crit;
+  document.getElementById('dash-openActions').textContent=correctiveActions.filter(a=>a.status!=='بسته').length;
+  document.getElementById('criticalAlert').style.display=crit>0?'flex':'none';
+
+  const total=inspections.length||1;
+  const low=inspections.filter(i=>i.pct>=80).length;
+  const med=inspections.filter(i=>i.pct>=60&&i.pct<80).length;
+  const hi2=inspections.filter(i=>i.pct>=40&&i.pct<60).length;
+  const hi=inspections.filter(i=>i.pct<40).length;
+  [{k:'low',v:low},{k:'med',v:med},{k:'high2',v:hi2},{k:'high',v:hi}].forEach(({k,v})=>{
+    const p=Math.round((v/total)*100);
+    document.getElementById('rbar-'+k).style.width=p+'%';
+    document.getElementById('rpct-'+k).textContent=p+'%';
+  });
+
+  const recentEl=document.getElementById('recent-list');
+  if (!inspections.length){recentEl.innerHTML='<div class="empty-state"><i class="ti ti-clipboard"></i>هنوز بازرسی ثبت نشده.</div>';return;}
+  recentEl.innerHTML=[...inspections].reverse().slice(0,4).map(i=>`
+    <div class="report-row" onclick="viewDetail(${i.id});showPage('reports');">
+      <div><div style="font-weight:600;font-size:13px;">${i.warehouse}</div><div style="font-size:11px;color:#7A7875;">${i.insDate} · ${i.inspector}</div></div>
+      <span class="badge ${i.riskClass}">${i.pct}% — ${i.riskLevel}</span>
+    </div>`).join('');
+}
+
+function renderReportList() {
+  const container=document.getElementById('reportList');
+  if (!inspections.length){container.innerHTML='<div class="empty-state"><i class="ti ti-clipboard-x"></i>هنوز بازرسی‌ای ثبت نشده است.</div>';return;}
+  container.innerHTML=[...inspections].reverse().map(i=>`
+    <div class="report-row" onclick="viewDetail(${i.id})">
+      <div>
+        <div style="font-weight:600;font-size:13px;">${i.warehouse}</div>
+        <div style="font-size:11px;color:#7A7875;">${i.insDate} · ${i.inspector} · شیفت ${i.shift}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        ${i.isCritical?'<span class="badge badge-red"><i class="ti ti-alert-triangle"></i> بحرانی</span>':''}
+        <span class="badge ${i.riskClass}">${i.pct}%</span>
+        <i class="ti ti-chevron-left" style="color:#9A9895;"></i>
+      </div>
+    </div>`).join('');
+}
+
+function viewDetail(id) {
+  const insp=inspections.find(i=>i.id===id);
+  if (!insp) return;
+  switchTab('tab-detail','tab-btn-detail');
+  const all=getAllQ();
+  const critFailed=all.filter(q=>q.critical&&insp.answers[q.id]&&insp.answers[q.id].score===0);
+  let recs=[];
+  if (critFailed.length>0){
+    critFailed.forEach(q=>{const r=correctiveMap[q.ref]||correctiveMap['default'];recs.push(...r.slice(0,2));});
+    recs=[...new Set(recs)].slice(0,6);
+  } else { recs=correctiveMap['default']; }
+
+  document.getElementById('detailContent').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div><div style="font-size:16px;font-weight:700;">${insp.warehouse}</div>
+      <div style="font-size:12px;color:#7A7875;">${insp.insDate} · ${insp.inspector} · شیفت ${insp.shift}</div></div>
+      <span class="badge ${insp.riskClass}" style="font-size:13px;padding:6px 14px;">${insp.pct}% — ${insp.riskLevel}</span>
+    </div>
+    <div class="grid-3">
+      <div class="metric"><div class="metric-label">امتیاز نهایی</div><div class="metric-val ${insp.pct>=80?'green':insp.pct>=60?'amber':'red'}">${insp.pct}%</div></div>
+      <div class="metric"><div class="metric-label">نواقص بحرانی</div><div class="metric-val red">${critFailed.length}</div></div>
+      <div class="metric"><div class="metric-label">وضعیت کلی</div><div class="metric-val" style="font-size:15px;">${insp.isCritical?'🚨 بحرانی':'✅ مطلوب'}</div></div>
+    </div>
+    ${critFailed.length>0?`<div class="notif notif-red" style="margin-bottom:12px;">
+      <i class="ti ti-alert-triangle" style="font-size:18px;flex-shrink:0;"></i>
+      <div><strong>نواقص بحرانی شناسایی‌شده:</strong><br>${critFailed.map(q=>'• '+q.text).join('<br>')}</div>
+    </div>`:'<div class="notif notif-green" style="margin-bottom:12px;"><i class="ti ti-circle-check" style="font-size:18px;flex-shrink:0;"></i><div><strong>عملکرد مطلوب!</strong> هیچ نقص بحرانی شناسایی نشد.</div></div>'}
+    <div class="card" style="margin-bottom:10px;">
+      <div class="section-title"><i class="ti ti-checklist"></i> پیشنهادات اقدام اصلاحی</div>
+      <ul class="correctiveList">${recs.map(c=>`<li>${c}</li>`).join('')}</ul>
+    </div>
+    ${insp.notes?`<div class="card"><div style="font-size:12px;color:#5F5E5A;"><strong>یادداشت بازرس:</strong> ${insp.notes}</div></div>`:''}
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap;">
+      <button class="btn" onclick="switchTab('tab-list','tab-btn-list')"><i class="ti ti-arrow-right"></i> بازگشت</button>
+      <button class="btn btn-primary" onclick="printReport(${id})"><i class="ti ti-printer"></i> چاپ / PDF</button>
+    </div>`;
+}
+
+function printReport(id) {
+  const insp=inspections.find(i=>i.id===id);
+  if (!insp) return;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="UTF-8"><title>گزارش بازرسی - ${insp.warehouse}</title>
+  <style>body{font-family:Tahoma,Arial,sans-serif;font-size:13px;padding:30px;color:#111;direction:rtl;}h1{font-size:18px;margin-bottom:5px;}h2{font-size:14px;margin:16px 0 6px;}table{width:100%;border-collapse:collapse;margin-top:10px;}td,th{border:1px solid #ccc;padding:7px 10px;text-align:right;}th{background:#f0f0f0;}.badge-r{color:#A32D2D;}.badge-g{color:#3B6D11;}.badge-a{color:#854F0B;}.header{border-bottom:2px solid #0C447C;padding-bottom:12px;margin-bottom:16px;}@media print{button{display:none!important;}}</style>
+  </head><body>
+  <div class="header"><h1>🛡️ گزارش بازرسی ایمنی انبار مواد شیمیایی</h1><p style="font-size:11px;color:#555;">ISO 45001 · OSHA · NFPA</p></div>
+  <table><tr><th>انبار/سایت</th><td>${insp.warehouse}</td><th>بازرس</th><td>${insp.inspector}</td></tr>
+  <tr><th>تاریخ</th><td>${insp.insDate}</td><th>شیفت</th><td>${insp.shift}</td></tr>
+  <tr><th>امتیاز کل</th><td><strong>${insp.pct}%</strong></td><th>سطح ریسک</th><td class="${insp.pct>=80?'badge-g':insp.pct>=60?'badge-a':'badge-r'}"><strong>${insp.riskLevel}</strong></td></tr>
+  <tr><th>وضعیت</th><td colspan="3" class="${insp.isCritical?'badge-r':'badge-g'}"><strong>${insp.isCritical?'🚨 بحرانی — نیاز به اقدام فوری':'✅ مطلوب'}</strong></td></tr></table>
+  ${insp.notes?`<h2>یادداشت بازرس:</h2><p>${insp.notes}</p>`:''}
+  <h2>پیشنهادات اقدام اصلاحی:</h2>
+  <ol>${(correctiveMap['default']).map(r=>`<li>${r}</li>`).join('')}</ol>
+  <p style="font-size:10px;color:#999;margin-top:30px;border-top:1px solid #eee;padding-top:10px;">تاریخ چاپ: ${new Date().toLocaleDateString('fa-IR')}</p>
+  <br><button onclick="window.print()" style="padding:8px 20px;background:#0C447C;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:Tahoma;font-size:13px;">🖨️ چاپ / ذخیره PDF</button>
+  </body></html>`);
+  w.document.close();
+}
+
+function addCorrectiveAction() {
+  const title=document.getElementById('ca-title').value.trim();
+  if (!title){alert('عنوان اقدام اصلاحی الزامی است.');return;}
+  correctiveActions.push({
+    id:Date.now(),
+    title, priority:document.getElementById('ca-priority').value,
+    owner:document.getElementById('ca-owner').value,
+    deadline:document.getElementById('ca-deadline').value,
+    desc:document.getElementById('ca-desc').value,
+    status:'باز', created:new Date().toLocaleDateString('fa-IR')
+  });
+  renderCorrectiveList(); updateDashboard();
+  ['ca-title','ca-owner','ca-deadline','ca-desc'].forEach(id=>document.getElementById(id).value='');
+}
+
+function renderCorrectiveList() {
+  const container=document.getElementById('correctiveList');
+  if (!correctiveActions.length){container.innerHTML='<div class="empty-state"><i class="ti ti-tool"></i>هنوز اقدام اصلاحی ثبت نشده.</div>';return;}
+  container.innerHTML=correctiveActions.map(a=>`
+    <div class="action-row">
+      <div class="action-icon" style="background:${a.status==='بسته'?'#EAF3DE':a.priority.includes('فوری')?'#FCEBEB':'#FAEEDA'};">
+        <i class="ti ti-${a.status==='بسته'?'check':'tool'}" style="color:${a.status==='بسته'?'#3B6D11':a.priority.includes('فوری')?'#A32D2D':'#854F0B'};font-size:18px;"></i>
+      </div>
+      <div class="action-content">
+        <div class="action-title">${a.title}</div>
+        ${a.desc?`<div class="action-desc">${a.desc}</div>`:''}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="badge ${a.priority.includes('فوری')?'badge-red':a.priority.includes('زیاد')?'badge-amber':'badge-blue'}">${a.priority}</span>
+          ${a.owner?`<span class="badge badge-gray"><i class="ti ti-user"></i> ${a.owner}</span>`:''}
+          ${a.deadline?`<span class="badge badge-gray"><i class="ti ti-calendar"></i> ${a.deadline}</span>`:''}
+          <span class="badge ${a.status==='بسته'?'badge-green':'badge-amber'}">${a.status}</span>
+        </div>
+      </div>
+      <button class="btn" style="font-size:12px;padding:6px 10px;flex-shrink:0;" onclick="toggleAction(${a.id})">${a.status==='بسته'?'بازگشایی':'بستن'}</button>
+    </div>`).join('');
+}
+
+function toggleAction(id) {
+  const a=correctiveActions.find(x=>x.id===id);
+  if(a){a.status=a.status==='بسته'?'باز':'بسته';renderCorrectiveList();updateDashboard();}
+}
+
+function switchTab(showId, activeBtnId) {
+  ['tab-list','tab-detail'].forEach(id=>document.getElementById(id).style.display='none');
+  ['tab-btn-list','tab-btn-detail'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById(showId).style.display='block';
+  document.getElementById(activeBtnId).classList.add('active');
+  if (showId==='tab-list') renderReportList();
+}
+
+function resetForm() {
+  answers={};
+  ['inspector','warehouse','insDate','inspNotes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  buildChecklist();
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+}
+
+// Init
+const now=new Date();
+document.getElementById('currentDate').textContent=now.toLocaleDateString('fa-IR',{year:'numeric',month:'long',day:'numeric'});
+const todayInput=document.getElementById('insDate');
+if(todayInput) todayInput.value=now.toISOString().split('T')[0];
+buildChecklist();
+</script>
+</body>
+</html>
